@@ -19,7 +19,7 @@ class Migrations extends Common
         string $configId,
         string $branchId,
         bool $dryRun = false,
-    ): array {
+    ): string {
         $queryParams = [];
         if ($dryRun) {
             $queryParams['dry-run'] = 'true';
@@ -30,7 +30,7 @@ class Migrations extends Common
             $url .= '?' . http_build_query($queryParams);
         }
 
-        return $this->apiPost($url, [
+        $response = $this->apiPost($url, [
             'sourceStorageApiToken' => $sourceStorageApiToken,
             'destinationStack' => $destinationStack,
             'destinationStorageApiToken' => $destinationStorageApiToken,
@@ -38,5 +38,7 @@ class Migrations extends Common
             'configId' => $configId,
             'branchId' => $branchId,
         ]);
+
+        return $response[0];
     }
 }
