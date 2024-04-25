@@ -34,8 +34,8 @@ class Common
         $handlerStack = $config['handler'] ?? HandlerStack::create();
         $handlerStack->push(
             Middleware::retry(
-                self::createDefaultDecider($config['backoffMaxTries'] ?? self::DEFAULT_BACKOFF_RETRIES)
-            )
+                self::createDefaultDecider($config['backoffMaxTries'] ?? self::DEFAULT_BACKOFF_RETRIES),
+            ),
         );
 
         $this->client = new Client(
@@ -43,10 +43,10 @@ class Common
                 'base_uri' => $config['url'],
                 'headers' => array_merge(
                     $headers,
-                    self::DEFAULT_HEADERS
+                    self::DEFAULT_HEADERS,
                 ),
                 'handler' => $handlerStack,
-            ]
+            ],
         );
     }
 
@@ -91,7 +91,7 @@ class Common
                         $e->getResponse()->getBody()->getContents(),
                         true,
                         512,
-                        JSON_THROW_ON_ERROR
+                        JSON_THROW_ON_ERROR,
                     );
                     if (!empty($response['message'])) {
                         $message = $response['message'];
@@ -113,7 +113,7 @@ class Common
             int $retries,
             RequestInterface $request,
             ?ResponseInterface $response = null,
-            ?Throwable $error = null
+            ?Throwable $error = null,
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
                 return false;

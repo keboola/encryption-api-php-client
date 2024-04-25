@@ -35,9 +35,9 @@ class MigrationsTest extends TestCase
                     [
                         'errno' => 56,
                         'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
-                    ]
+                    ],
                 );
-            }
+            },
         );
 
         // Add the history middleware to the handler stack.
@@ -48,7 +48,7 @@ class MigrationsTest extends TestCase
 
         $migrations = new Migrations(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com', 'backoffMaxTries' => 2]
+            ['handler' => $stack, 'url' => 'https://encryption.keboola.com', 'backoffMaxTries' => 2],
         );
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Encryption API error: Encryption API error: cURL error 56:');
@@ -71,7 +71,7 @@ class MigrationsTest extends TestCase
                 new Response(
                     200,
                     ['Content-Type' => 'application/json'],
-                    '["Configuration with id \"1234\" successfully migrated to stack \"some-stack\"."]'
+                    '["Configuration with id \"1234\" successfully migrated to stack \"some-stack\"."]',
                 ),
             ],
             function (ResponseInterface $a) {
@@ -85,10 +85,10 @@ class MigrationsTest extends TestCase
                         [
                             'errno' => 56,
                             'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
-                        ]
+                        ],
                     );
                 }
-            }
+            },
         );
 
         // Add the history middleware to the handler stack.
@@ -99,7 +99,7 @@ class MigrationsTest extends TestCase
 
         $migrations = new Migrations(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com']
+            ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
         );
         $message = $migrations->migrateConfiguration(
             'some-token',
@@ -125,9 +125,9 @@ class MigrationsTest extends TestCase
                     new Request('GET', 'https://example.com'),
                     null,
                     null,
-                    []
+                    [],
                 );
-            }
+            },
         );
 
         // Add the history middleware to the handler stack.
@@ -138,7 +138,7 @@ class MigrationsTest extends TestCase
 
         $migrations = new Migrations(
             'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com']
+            ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
         );
         $this->expectException(ClientException::class);
         $this->expectExceptionMessage('Encryption API error: Encryption API error: cURL error 56:');
