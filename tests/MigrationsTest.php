@@ -17,6 +17,35 @@ use Psr\Http\Message\ResponseInterface;
 
 class MigrationsTest extends TestCase
 {
+    public function testMigrateConfiguration(): void
+    {
+        $mock = new MockHandler(
+            [
+                new Response(
+                    200,
+                    ['Content-Type' => 'application/json'],
+                    '["Configuration with id \"1234\" successfully migrated to stack \"some-stack\"."]',
+                ),
+            ],
+        );
+
+        $stack = HandlerStack::create($mock);
+
+        $migrations = new Migrations(
+            'some-token',
+            ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
+        );
+        $message = $migrations->migrateConfiguration(
+            'some-token',
+            'some-stack',
+            'some-token',
+            'keboola.some-component',
+            '1234',
+            '102',
+        );
+        self::assertSame('Configuration with id "1234" successfully migrated to stack "some-stack".', $message);
+    }
+
     public function testRetryCurlExceptionFail(): void
     {
         $mock = new MockHandler(
