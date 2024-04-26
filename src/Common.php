@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Keboola\EncryptionApiClient;
 
 use Closure;
+use GuzzleHttp\BodySummarizer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\GuzzleException;
@@ -23,6 +24,7 @@ class Common
     protected Client $client;
     private const DEFAULT_BACKOFF_RETRIES = 10;
     private const DEFAULT_HEADERS = ['Accept' => 'application/json'];
+    private const MAX_HTTP_ERROR_MESSAGE_LENGTH = 1024^2;
 
     /**
      * @param array{url: string, handler?: HandlerStack, backoffMaxTries?: int} $config
@@ -32,10 +34,17 @@ class Common
     {
         // Initialize handlers (start with those supplied in constructor)
         $handlerStack = $config['handler'] ?? HandlerStack::create();
+
         $handlerStack->push(
             Middleware::retry(
                 self::createDefaultDecider($config['backoffMaxTries'] ?? self::DEFAULT_BACKOFF_RETRIES),
             ),
+        );
+
+        $handlerStack->remove('http_errors');
+        $handlerStack->unshift(
+            Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
+            'http_errors',
         );
 
         $this->client = new Client(
