@@ -24,7 +24,9 @@ class MigrationsTest extends TestCase
                 new Response(
                     200,
                     ['Content-Type' => 'application/json'],
-                    '["Configuration with id \"1234\" successfully migrated to stack \"some-stack\"."]',
+                    '{"message":"Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'."'
+                    .',"data":{"destinationStack":"some-stack","componentId":"sandboxes.data-apps","configId":"1234"'
+                    . ',"branchId":"102"}}',
                 ),
             ],
         );
@@ -35,7 +37,7 @@ class MigrationsTest extends TestCase
             'some-token',
             ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
         );
-        $message = $migrations->migrateConfiguration(
+        $result = $migrations->migrateConfiguration(
             'some-token',
             'some-stack',
             'some-token',
@@ -43,7 +45,19 @@ class MigrationsTest extends TestCase
             '1234',
             '102',
         );
-        self::assertSame('Configuration with id "1234" successfully migrated to stack "some-stack".', $message);
+        self::assertIsArray($result);
+        self::assertSame(
+            [
+                'message' => 'Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'.',
+                'data' => [
+                    'destinationStack' => 'some-stack',
+                    'componentId' => 'sandboxes.data-apps',
+                    'configId' => '1234',
+                    'branchId' => '102',
+                ],
+            ],
+            $result,
+        );
     }
 
     public function testRetryCurlExceptionFail(): void
@@ -100,7 +114,9 @@ class MigrationsTest extends TestCase
                 new Response(
                     200,
                     ['Content-Type' => 'application/json'],
-                    '["Configuration with id \"1234\" successfully migrated to stack \"some-stack\"."]',
+                    '{"message":"Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'."'
+                    .',"data":{"destinationStack":"some-stack","componentId":"sandboxes.data-apps","configId":"1234"'
+                    . ',"branchId":"102"}}',
                 ),
             ],
             function (ResponseInterface $a) {
@@ -130,7 +146,7 @@ class MigrationsTest extends TestCase
             'some-token',
             ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
         );
-        $message = $migrations->migrateConfiguration(
+        $result = $migrations->migrateConfiguration(
             'some-token',
             'some-stack',
             'some-token',
@@ -138,7 +154,19 @@ class MigrationsTest extends TestCase
             '1234',
             '102',
         );
-        self::assertSame('Configuration with id "1234" successfully migrated to stack "some-stack".', $message);
+        self::assertIsArray($result);
+        self::assertSame(
+            [
+                'message' => 'Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'.',
+                'data' => [
+                    'destinationStack' => 'some-stack',
+                    'componentId' => 'sandboxes.data-apps',
+                    'configId' => '1234',
+                    'branchId' => '102',
+                ],
+            ],
+            $result,
+        );
     }
 
     public function testRetryCurlExceptionWithoutContext(): void
