@@ -1,10 +1,16 @@
 version: "3.4"
 
 services:
-  # for development purposes
   ci: &ci
     build: .
     command: ['composer', 'ci']
+
+  ci-7.4:
+    <<: *ci
+    build:
+      context: .
+      args:
+        PHP_VERSION: "7.4"
 
   tests-local: &tests-local
     <<: *ci
