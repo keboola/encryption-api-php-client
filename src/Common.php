@@ -105,7 +105,7 @@ class Common
                     if (!empty($response['message'])) {
                         $message = $response['message'];
                     }
-                } catch (Throwable) {
+                } catch (Throwable $e) {
                 }
             }
             throw new ClientException('Encryption API error: ' . $message, $e->getCode(), $e);
@@ -122,7 +122,7 @@ class Common
             int $retries,
             RequestInterface $request,
             ?ResponseInterface $response = null,
-            ?Throwable $error = null,
+            ?Throwable $error = null
         ) use ($maxRetries) {
             if ($retries >= $maxRetries) {
                 return false;
