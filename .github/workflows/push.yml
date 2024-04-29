@@ -1,5 +1,7 @@
 name: GitHub Actions
-on: [ push ]
+on:
+  - push
+  - workflow_dispatch
 env:
   APP_IMAGE: "encryption-api-php-client"
   DOCKERHUB_USER: "keboolabot"
