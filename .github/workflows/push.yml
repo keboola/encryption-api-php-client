@@ -1,6 +1,5 @@
 name: GitHub Actions
 on: [ push ]
-concurrency: 'ci-${{ github.ref }}'
 env:
   APP_IMAGE: "encryption-api-php-client"
   DOCKERHUB_USER: "keboolabot"
@@ -23,5 +22,5 @@ jobs:
 
       - name: Build and run tests
         run: |
-          docker compose build --build-arg PHP_VERSION=${{ matrix.php-version }}
+          docker compose build ci --build-arg PHP_VERSION=${{ matrix.php-version }}
           docker compose run --rm ci

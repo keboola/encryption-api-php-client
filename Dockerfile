@@ -16,7 +16,7 @@ COPY ./docker/php/xdebug.ini /usr/local/etc/php/conf.d/
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
 
-RUN if [ "$PHP_VERSION" = "8.2" ]; then \
+RUN if [ "$PHP_VERSION" != "7.4" ]; then \
     pecl install xdebug && \
     docker-php-ext-enable xdebug; \
     fi

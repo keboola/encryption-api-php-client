@@ -5,15 +5,15 @@ services:
     build: .
     command: ['composer', 'ci']
 
-  tests-local: &tests-local
+  dev: &dev
     <<: *ci
     volumes:
       - ./:/code
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  tests-local-7.4:
-    <<: *tests-local
+  dev-7.4:
+    <<: *dev
     build:
       context: .
       args:

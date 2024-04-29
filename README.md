@@ -9,8 +9,8 @@ composer require keboola/encryption-api-php-client
 Run the tests:
 
 ```bash
-docker compose run tests-local composer install
-docker compose run tests-local
+docker compose run dev composer install
+docker compose run dev
 ```
 
 ## Usage
