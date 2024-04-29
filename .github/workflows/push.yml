@@ -1,12 +1,16 @@
 name: GitHub Actions
 on: [ push ]
+concurrency: 'ci-${{ github.ref }}'
 env:
   APP_IMAGE: "encryption-api-php-client"
   DOCKERHUB_USER: "keboolabot"
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 jobs:
-  Build:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.2']
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -17,10 +21,7 @@ jobs:
           username: ${{ env.DOCKERHUB_USER }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Build and run tests for PHP 8.2
+      - name: Build and run tests
         run: |
-          docker compose run ci
-
-      - name: Build and run tests for PHP 7.4
-        run: |
-          docker compose run ci
+          docker compose build --build-arg PHP_VERSION=${{ matrix.php-version }}'
+          docker compose run --rm ci

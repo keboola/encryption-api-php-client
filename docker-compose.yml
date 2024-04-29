@@ -5,13 +5,6 @@ services:
     build: .
     command: ['composer', 'ci']
 
-  ci-7.4:
-    <<: *ci
-    build:
-      context: .
-      args:
-        PHP_VERSION: "7.4"
-
   tests-local: &tests-local
     <<: *ci
     volumes:
