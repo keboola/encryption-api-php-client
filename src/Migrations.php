@@ -18,7 +18,7 @@ class Migrations extends Common
         string $componentId,
         string $configId,
         string $branchId,
-        bool $dryRun = false,
+        bool $dryRun = false
     ): array {
         $queryParams = [];
         if ($dryRun) {

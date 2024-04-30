@@ -1,14 +1,20 @@
 version: "3.4"
 
 services:
-  # for development purposes
   ci: &ci
     build: .
     command: ['composer', 'ci']
 
-  tests-local:
+  dev: &dev
     <<: *ci
     volumes:
       - ./:/code
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  dev-7.4:
+    <<: *dev
+    build:
+      context: .
+      args:
+        PHP_VERSION: "7.4"
