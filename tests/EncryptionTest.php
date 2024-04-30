@@ -32,11 +32,11 @@ class EncryptionTest extends TestCase
         $history = Middleware::history($requestsMade);
         $stack->push($history);
 
-        $migrations = new Encryption(
+        $encryptionClient = new Encryption(
             'some-token',
             ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
         );
-        $result = $migrations->encryptPlainTextForConfiguration(
+        $result = $encryptionClient->encryptPlainTextForConfiguration(
             'plainValue',
             'project-id',
             'keboola.component-id',
