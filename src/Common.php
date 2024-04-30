@@ -23,7 +23,10 @@ class Common
 {
     protected Client $client;
     private const DEFAULT_BACKOFF_RETRIES = 10;
-    private const DEFAULT_HEADERS = ['Accept' => 'application/json'];
+    private const DEFAULT_HEADERS = [
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/json',
+    ];
     private const MAX_HTTP_ERROR_MESSAGE_LENGTH = 1024^2;
 
     /**
