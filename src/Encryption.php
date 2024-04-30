@@ -24,6 +24,8 @@ class Encryption extends Common
             'configId' => $configId,
         ]);
 
+        // because at the moment Common client is made for json requests/responses,
+        // we need to wrap the value in an array
         $result = $this->apiPost($url, ['#value' => $value]);
         return $result['#value'];
     }
