@@ -41,7 +41,7 @@ class Common
             ),
         );
 
-        if (interface_exists('GuzzleHttp\BodySummarizer')) {
+        if (class_exists('GuzzleHttp\BodySummarizer')) {
             $handlerStack->remove('http_errors');
             $handlerStack->unshift(
                 Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
