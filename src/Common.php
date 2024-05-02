@@ -73,13 +73,27 @@ class Common
 
     protected function apiPost(string $url, array $body): array
     {
-        $request = new Request('POST', $url, [], json_encode($body, JSON_THROW_ON_ERROR));
+        $request = new Request(
+            'POST',
+            $url,
+            [
+                'Content-Type' => 'application/json',
+            ],
+            json_encode($body, JSON_THROW_ON_ERROR),
+        );
         return $this->sendRequest($request);
     }
 
     protected function apiPatch(string $url, array $body): array
     {
-        $request = new Request('PATCH', $url, [], json_encode($body, JSON_THROW_ON_ERROR));
+        $request = new Request(
+            'PATCH',
+            $url,
+            [
+                'Content-Type' => 'application/json',
+            ],
+            json_encode($body, JSON_THROW_ON_ERROR),
+        );
         return $this->sendRequest($request);
     }
 
