@@ -1,12 +1,8 @@
 version: "3.4"
 
 services:
-  ci: &ci
-    build: .
-    command: ['composer', 'ci']
-
   dev: &dev
-    <<: *ci
+    build: .
     volumes:
       - ./:/code
     extra_hosts:

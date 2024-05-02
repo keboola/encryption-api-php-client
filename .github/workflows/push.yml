@@ -24,12 +24,12 @@ jobs:
 
       - name: Build Docker container
         run: |
-          docker compose build ci --build-arg PHP_VERSION=${{ matrix.php-version }}
+          docker compose build dev --build-arg PHP_VERSION=${{ matrix.php-version }}
 
       - name: Install dependencies & Run tests
         run: |
           if [ "${{ matrix.php-version }}" = "7.4" ]; then
-            docker compose run ci bash -c "composer update --prefer-lowest && composer ci"
+            docker compose run dev bash -c "composer update --prefer-lowest && composer ci"
           else
-            docker compose run ci bash -c "composer update && composer ci"
+            docker compose run dev bash -c "composer update && composer ci"
           fi
