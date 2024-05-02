@@ -13,6 +13,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use InvalidArgumentException;
 use JsonException;
 use Keboola\EncryptionApiClient\Exception\ClientException;
 use Psr\Http\Message\RequestInterface;
@@ -47,6 +48,10 @@ class Common
                 Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
                 'http_errors',
             );
+        }
+
+        if (!isset($config['url'])) {
+            throw new InvalidArgumentException('url must be set');
         }
 
         $this->client = new Client(
