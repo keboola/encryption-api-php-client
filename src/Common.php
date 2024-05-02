@@ -28,7 +28,6 @@ class Common
     private const MAX_HTTP_ERROR_MESSAGE_LENGTH = 1024^2;
 
     /**
-     * @param array{url: string, handler?: HandlerStack, backoffMaxTries?: int} $config
      * @throws ClientException
      */
     public function __construct(array $headers, array $config)
