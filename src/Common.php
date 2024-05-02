@@ -41,11 +41,13 @@ class Common
             ),
         );
 
-        $handlerStack->remove('http_errors');
-        $handlerStack->unshift(
-            Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
-            'http_errors',
-        );
+        if (interface_exists('GuzzleHttp\BodySummarizer')) {
+            $handlerStack->remove('http_errors');
+            $handlerStack->unshift(
+                Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
+                'http_errors',
+            );
+        }
 
         $this->client = new Client(
             [
