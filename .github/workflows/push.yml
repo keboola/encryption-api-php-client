@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['7.4', '8.2']
+        php-version: [ '7.4', '8.2' ]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -22,7 +22,14 @@ jobs:
           username: ${{ env.DOCKERHUB_USER }}
           password: ${{ env.DOCKERHUB_TOKEN }}
 
-      - name: Build and run tests
+      - name: Build Docker container
         run: |
-          docker compose build ci --build-arg PHP_VERSION=${{ matrix.php-version }}
-          docker compose run --rm ci
+          docker compose build dev --build-arg PHP_VERSION=${{ matrix.php-version }}
+
+      - name: Install dependencies & Run tests
+        run: |
+          if [ "${{ matrix.php-version }}" = "7.4" ]; then
+            docker compose run dev bash -c "composer update --prefer-lowest && composer ci"
+          else
+            docker compose run dev bash -c "composer update && composer ci"
+          fi

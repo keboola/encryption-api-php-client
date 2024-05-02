@@ -20,8 +20,3 @@ RUN if [[ "$PHP_VERSION" != 7.4* ]]; then \
     pecl install xdebug && \
     docker-php-ext-enable xdebug; \
     fi
-
-COPY composer.* ./
-RUN composer install $COMPOSER_FLAGS --no-scripts --no-autoloader
-COPY . .
-RUN composer install $COMPOSER_FLAGS

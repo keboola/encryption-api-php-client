@@ -13,6 +13,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request;
+use InvalidArgumentException;
 use JsonException;
 use Keboola\EncryptionApiClient\Exception\ClientException;
 use Psr\Http\Message\RequestInterface;
@@ -27,7 +28,6 @@ class Common
     private const MAX_HTTP_ERROR_MESSAGE_LENGTH = 1024^2;
 
     /**
-     * @param array{url: string, handler?: HandlerStack, backoffMaxTries?: int} $config
      * @throws ClientException
      */
     public function __construct(array $headers, array $config)
@@ -41,11 +41,17 @@ class Common
             ),
         );
 
-        $handlerStack->remove('http_errors');
-        $handlerStack->unshift(
-            Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
-            'http_errors',
-        );
+        if (class_exists('GuzzleHttp\BodySummarizer')) {
+            $handlerStack->remove('http_errors');
+            $handlerStack->unshift(
+                Middleware::httpErrors(new BodySummarizer(self::MAX_HTTP_ERROR_MESSAGE_LENGTH)),
+                'http_errors',
+            );
+        }
+
+        if (!isset($config['url'])) {
+            throw new InvalidArgumentException('url must be set');
+        }
 
         $this->client = new Client(
             [
