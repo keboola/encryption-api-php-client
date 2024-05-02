@@ -29,9 +29,9 @@ jobs:
       - name: Install Composer dependencies
         run: |
           if [ "${{ matrix.php-version }}" = "7.4" ]; then
-            docker compose run --rm ci composer update --prefer-lowest
+            docker compose run ci composer update --prefer-lowest
           else
-            docker compose run --rm ci composer update
+            docker compose run ci composer update
           fi
 
       - name: Run tests
