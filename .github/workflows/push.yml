@@ -26,14 +26,10 @@ jobs:
         run: |
           docker compose build ci --build-arg PHP_VERSION=${{ matrix.php-version }}
 
-      - name: Install Composer dependencies
+      - name: Install dependencies & Run tests
         run: |
           if [ "${{ matrix.php-version }}" = "7.4" ]; then
-            docker compose run ci composer update --prefer-lowest
+            docker compose run ci bash -c "composer update --prefer-lowest && composer ci"
           else
-            docker compose run ci composer update
+            docker compose run ci bash -c "composer update && composer ci"
           fi
-
-      - name: Run tests
-        run: |
-          docker compose run --rm ci
