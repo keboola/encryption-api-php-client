@@ -6,9 +6,9 @@ namespace Keboola\EncryptionApiClient;
 
 class Migrations extends Common
 {
-    public function __construct(string $sapiToken, array $config)
+    public function __construct(string $manageApiToken, array $config)
     {
-        parent::__construct(['X-StorageApi-Token' => $sapiToken], $config);
+        parent::__construct(['X-KBC-ManageApiToken' => $manageApiToken], $config);
     }
 
     public function migrateConfiguration(
