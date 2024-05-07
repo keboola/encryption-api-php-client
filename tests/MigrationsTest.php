@@ -31,7 +31,11 @@ class MigrationsTest extends TestCase
             ],
         );
 
+        // Add the history middleware to the handler stack.
+        $container = [];
+        $history = Middleware::history($container);
         $stack = HandlerStack::create($mock);
+        $stack->push($history);
 
         $migrations = new Migrations(
             'some-token',
@@ -58,6 +62,15 @@ class MigrationsTest extends TestCase
             ],
             $result,
         );
+
+        /** @var Request $request */
+        $request = $container[0]['request'];
+        self::assertSame(
+            'https://encryption.keboola.com/migrate-configuration',
+            (string) $request->getUri(),
+        );
+        self::assertSame('POST', $request->getMethod());
+        self::assertSame('some-token', $request->getHeader('X-KBC-ManageApiToken')[0]);
     }
 
     public function testRetryCurlExceptionFail(): void
