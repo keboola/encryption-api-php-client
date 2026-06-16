@@ -4,218 +4,210 @@ declare(strict_types=1);
 
 namespace Keboola\EncryptionApiClient\Tests;
 
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use Keboola\EncryptionApiClient\Exception\ClientException;
+use Keboola\ApiClientBase\Exception\ClientException;
+use Keboola\ApiClientBase\Json;
 use Keboola\EncryptionApiClient\Migrations;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 
 class MigrationsTest extends TestCase
 {
+    use ApiClientTestTrait;
+
+    private const BASE_URL = 'https://encryption.keboola.com';
+    private const API_TOKEN = 'some-token';
+
+    private const SUCCESS_BODY = [
+        'message' => 'Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'.',
+        'data' => [
+            'destinationStack' => 'some-stack',
+            'componentId' => 'sandboxes.data-apps',
+            'configId' => '1234',
+            'branchId' => '102',
+        ],
+    ];
+
     public function testMigrateConfiguration(): void
     {
-        $mock = new MockHandler(
-            [
-                new Response(
-                    200,
-                    ['Content-Type' => 'application/json'],
-                    '{"message":"Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'."'
-                    .',"data":{"destinationStack":"some-stack","componentId":"sandboxes.data-apps","configId":"1234"'
-                    . ',"branchId":"102"}}',
-                ),
-            ],
-        );
-
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray(self::SUCCESS_BODY)),
+        ]);
 
         $migrations = new Migrations(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
+            self::BASE_URL,
+            self::API_TOKEN,
+            requestHandler: $requestHandler(...),
         );
+
         $result = $migrations->migrateConfiguration(
-            'some-token',
+            'source-token',
             'some-stack',
-            'some-token',
+            'destination-token',
             'keboola.some-component',
             '1234',
             '102',
         );
-        self::assertIsArray($result);
-        self::assertSame(
-            [
-                'message' => 'Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'.',
-                'data' => [
-                    'destinationStack' => 'some-stack',
-                    'componentId' => 'sandboxes.data-apps',
-                    'configId' => '1234',
-                    'branchId' => '102',
-                ],
-            ],
-            $result,
-        );
 
-        /** @var Request $request */
-        $request = $container[0]['request'];
-        self::assertSame(
-            'https://encryption.keboola.com/migrate-configuration',
-            (string) $request->getUri(),
+        self::assertSame(self::SUCCESS_BODY, $result);
+
+        self::assertCount(1, $requestsHistory);
+        self::assertRequestEquals(
+            'POST',
+            self::BASE_URL . '/migrate-configuration',
+            [
+                'Content-Type' => 'application/json',
+                'X-KBC-ManageApiToken' => self::API_TOKEN,
+            ],
+            Json::encodeArray([
+                'sourceStorageApiToken' => 'source-token',
+                'destinationStack' => 'some-stack',
+                'destinationStorageApiToken' => 'destination-token',
+                'componentId' => 'keboola.some-component',
+                'configId' => '1234',
+                'branchId' => '102',
+            ]),
+            $requestsHistory[0]['request'],
         );
-        self::assertSame('POST', $request->getMethod());
-        self::assertSame('some-token', $request->getHeader('X-KBC-ManageApiToken')[0]);
     }
 
-    public function testRetryCurlExceptionFail(): void
+    public function testMigrateConfigurationDryRun(): void
     {
-        $mock = new MockHandler(
-            [
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-            ],
-            function (ResponseInterface $a) {
-                // abusing the mockhandler here: override the mock response and throw a Request exception
-                throw new RequestException(
-                    'Encryption API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
-                    new Request('GET', 'https://example.com'),
-                    null,
-                    null,
-                    [
-                        'errno' => 56,
-                        'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
-                    ],
-                );
-            },
-        );
-
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray(self::SUCCESS_BODY)),
+        ]);
 
         $migrations = new Migrations(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com', 'backoffMaxTries' => 2],
+            self::BASE_URL,
+            self::API_TOKEN,
+            requestHandler: $requestHandler(...),
         );
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Encryption API error: Encryption API error: cURL error 56:');
+
         $migrations->migrateConfiguration(
-            'some-token',
+            'source-token',
             'some-stack',
-            'some-token',
+            'destination-token',
             'keboola.some-component',
             '1234',
             '102',
+            dryRun: true,
+        );
+
+        self::assertCount(1, $requestsHistory);
+        self::assertSame(
+            self::BASE_URL . '/migrate-configuration?dry-run=true',
+            $requestsHistory[0]['request']->getUri()->__toString(),
         );
     }
 
-    public function testRetryCurlException(): void
+    public function testRetriesServerErrorThenSucceeds(): void
     {
-        $mock = new MockHandler(
-            [
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-                new Response(
-                    200,
-                    ['Content-Type' => 'application/json'],
-                    '{"message":"Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'."'
-                    .',"data":{"destinationStack":"some-stack","componentId":"sandboxes.data-apps","configId":"1234"'
-                    . ',"branchId":"102"}}',
-                ),
-            ],
-            function (ResponseInterface $a) {
-                if ($a->getStatusCode() === 500) {
-                    // abusing the mockhandler here: override the mock response and throw a Request exception
-                    throw new RequestException(
-                        'Encryption API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
-                        new Request('GET', 'https://example.com'),
-                        null,
-                        null,
-                        [
-                            'errno' => 56,
-                            'error' => 'OpenSSL SSL_read: Connection reset by peer, errno 104',
-                        ],
-                    );
-                }
-            },
-        );
-
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(500),
+            new Response(500),
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray(self::SUCCESS_BODY)),
+        ]);
 
         $migrations = new Migrations(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
+            self::BASE_URL,
+            self::API_TOKEN,
+            requestHandler: $requestHandler(...),
         );
+
         $result = $migrations->migrateConfiguration(
-            'some-token',
+            'source-token',
             'some-stack',
-            'some-token',
+            'destination-token',
             'keboola.some-component',
             '1234',
             '102',
         );
-        self::assertIsArray($result);
-        self::assertSame(
-            [
-                'message' => 'Configuration with ID \'1234\' successfully migrated to stack \'some-stack\'.',
-                'data' => [
-                    'destinationStack' => 'some-stack',
-                    'componentId' => 'sandboxes.data-apps',
-                    'configId' => '1234',
-                    'branchId' => '102',
-                ],
-            ],
-            $result,
-        );
+
+        self::assertSame(self::SUCCESS_BODY, $result);
+        self::assertCount(3, $requestsHistory);
     }
 
-    public function testRetryCurlExceptionWithoutContext(): void
+    public function testRetriesTransportErrorThenSucceeds(): void
     {
-        $mock = new MockHandler(
-            [
-                new Response(500, ['Content-Type' => 'application/json'], 'not used'),
-            ],
-            function (ResponseInterface $a) {
-                // abusing the mockhandler here: override the mock response and throw a Request exception
-                throw new RequestException(
-                    'Encryption API error: cURL error 56: OpenSSL SSL_read: Connection reset by peer, errno 104',
-                    new Request('GET', 'https://example.com'),
-                    null,
-                    null,
-                    [],
-                );
-            },
-        );
-
-        // Add the history middleware to the handler stack.
-        $container = [];
-        $history = Middleware::history($container);
-        $stack = HandlerStack::create($mock);
-        $stack->push($history);
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new ConnectException('Connection reset by peer', new Request('POST', 'migrate-configuration')),
+            new Response(200, ['Content-Type' => 'application/json'], Json::encodeArray(self::SUCCESS_BODY)),
+        ]);
 
         $migrations = new Migrations(
-            'some-token',
-            ['handler' => $stack, 'url' => 'https://encryption.keboola.com'],
+            self::BASE_URL,
+            self::API_TOKEN,
+            requestHandler: $requestHandler(...),
         );
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Encryption API error: Encryption API error: cURL error 56:');
-        $migrations->migrateConfiguration(
-            'some-token',
+
+        $result = $migrations->migrateConfiguration(
+            'source-token',
             'some-stack',
-            'some-token',
+            'destination-token',
+            'keboola.some-component',
+            '1234',
+            '102',
+        );
+
+        self::assertSame(self::SUCCESS_BODY, $result);
+        self::assertCount(2, $requestsHistory);
+    }
+
+    public function testRetryExhaustionThrowsClientException(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(500),
+            new Response(500),
+            new Response(500),
+        ]);
+
+        $migrations = new Migrations(
+            self::BASE_URL,
+            self::API_TOKEN,
+            backoffMaxTries: 2,
+            requestHandler: $requestHandler(...),
+        );
+
+        try {
+            $migrations->migrateConfiguration(
+                'source-token',
+                'some-stack',
+                'destination-token',
+                'keboola.some-component',
+                '1234',
+                '102',
+            );
+            self::fail('Expected ClientException to be thrown');
+        } catch (ClientException $e) {
+            self::assertCount(3, $requestsHistory);
+        }
+    }
+
+    public function testClientErrorUsesEncryptionMessage(): void
+    {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(
+                400,
+                ['Content-Type' => 'application/json'],
+                Json::encodeArray(['message' => 'Configuration not found']),
+            ),
+        ]);
+
+        $migrations = new Migrations(
+            self::BASE_URL,
+            self::API_TOKEN,
+            backoffMaxTries: 0,
+            requestHandler: $requestHandler(...),
+        );
+
+        $this->expectException(ClientException::class);
+        $this->expectExceptionMessage('Encryption API error: Configuration not found');
+
+        $migrations->migrateConfiguration(
+            'source-token',
+            'some-stack',
+            'destination-token',
             'keboola.some-component',
             '1234',
             '102',
