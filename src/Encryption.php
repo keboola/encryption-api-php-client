@@ -11,6 +11,7 @@ use Keboola\ApiClientBase\ApiClient;
 use Keboola\ApiClientBase\ApiClientOptions;
 use Keboola\ApiClientBase\Auth\StorageApiTokenAuthenticator;
 use Keboola\ApiClientBase\Json;
+use Keboola\EncryptionApiClient\Exception\ClientException;
 use Psr\Log\LoggerInterface;
 use Webmozart\Assert\Assert;
 
@@ -49,6 +50,7 @@ class Encryption
                 logger: $logger,
             ),
             errorMessageResolver: new EncryptionErrorMessageResolver(),
+            exceptionClass: ClientException::class,
         );
     }
 

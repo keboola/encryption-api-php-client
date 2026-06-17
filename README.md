@@ -59,7 +59,9 @@ $result = $migrations->migrateConfiguration(
 );
 ```
 
-On a failed request both clients throw `Keboola\ApiClientBase\Exception\ClientException`.
+On a failed request both clients throw `Keboola\EncryptionApiClient\Exception\ClientException`
+(a subclass of `Keboola\ApiClientBase\Exception\ClientException`). The exception exposes
+`getStatusCode()` and `getResponseBody()` for the failing response, when available.
 
 ## License
 

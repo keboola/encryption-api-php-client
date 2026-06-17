@@ -7,8 +7,8 @@ namespace Keboola\EncryptionApiClient\Tests;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use Keboola\ApiClientBase\Exception\ClientException;
 use Keboola\ApiClientBase\Json;
+use Keboola\EncryptionApiClient\Exception\ClientException;
 use Keboola\EncryptionApiClient\Migrations;
 use PHPUnit\Framework\TestCase;
 
@@ -201,16 +201,20 @@ class MigrationsTest extends TestCase
             requestHandler: $requestHandler(...),
         );
 
-        $this->expectException(ClientException::class);
-        $this->expectExceptionMessage('Encryption API error: Configuration not found');
-
-        $migrations->migrateConfiguration(
-            'source-token',
-            'some-stack',
-            'destination-token',
-            'keboola.some-component',
-            '1234',
-            '102',
-        );
+        try {
+            $migrations->migrateConfiguration(
+                'source-token',
+                'some-stack',
+                'destination-token',
+                'keboola.some-component',
+                '1234',
+                '102',
+            );
+            self::fail('Expected ClientException to be thrown');
+        } catch (ClientException $e) {
+            self::assertSame('Encryption API error: Configuration not found', $e->getMessage());
+            self::assertSame(400, $e->getStatusCode());
+            self::assertSame(Json::encodeArray(['message' => 'Configuration not found']), $e->getResponseBody());
+        }
     }
 }

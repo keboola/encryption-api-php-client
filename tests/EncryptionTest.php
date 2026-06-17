@@ -6,9 +6,9 @@ namespace Keboola\EncryptionApiClient\Tests;
 
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
-use Keboola\ApiClientBase\Exception\ClientException;
 use Keboola\ApiClientBase\Json;
 use Keboola\EncryptionApiClient\Encryption;
+use Keboola\EncryptionApiClient\Exception\ClientException;
 use PHPUnit\Framework\TestCase;
 
 class EncryptionTest extends TestCase
