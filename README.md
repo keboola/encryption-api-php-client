@@ -59,6 +59,13 @@ $result = $migrations->migrateConfiguration(
 );
 ```
 
+The manage token is optional. When it is omitted (or `null`), `Migrations` authenticates with the
+projected Connection service-account token instead — useful for in-cluster service-to-service calls:
+
+```php
+$migrations = new Migrations('https://encryption.keboola.com'); // service-account auth
+```
+
 On a failed request both clients throw `Keboola\EncryptionApiClient\Exception\ClientException`
 (a subclass of `Keboola\ApiClientBase\Exception\ClientException`). The exception exposes
 `getStatusCode()` and `getResponseBody()` for the failing response, when available.

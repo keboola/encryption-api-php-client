@@ -9,6 +9,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
 use Keboola\ApiClientBase\ApiClient;
 use Keboola\ApiClientBase\ApiClientOptions;
+use Keboola\ApiClientBase\Auth\KeboolaServiceAccountAuthenticator;
 use Keboola\ApiClientBase\Auth\ManageApiTokenAuthenticator;
 use Keboola\ApiClientBase\Json;
 use Keboola\EncryptionApiClient\Exception\ClientException;
@@ -23,12 +24,13 @@ class Migrations
 
     /**
      * @param non-empty-string $baseUrl
-     * @param non-empty-string $manageApiToken
+     * @param non-empty-string|null $manageToken When null, authenticates via the projected Connection
+     *     service-account token ({@see KeboolaServiceAccountAuthenticator}) instead of a Manage API token.
      * @param int<0, max> $backoffMaxTries
      */
     public function __construct(
         string $baseUrl,
-        string $manageApiToken,
+        ?string $manageToken = null,
         ?LoggerInterface $logger = null,
         int $backoffMaxTries = ApiClientOptions::DEFAULT_BACKOFF_MAX_TRIES,
         int $connectTimeout = ApiClientOptions::DEFAULT_CONNECT_TIMEOUT,
@@ -38,9 +40,13 @@ class Migrations
     ) {
         Assert::stringNotEmpty($baseUrl, 'Base URL must be a non-empty string');
 
+        $authenticator = $manageToken !== null
+            ? new ManageApiTokenAuthenticator($manageToken)
+            : new KeboolaServiceAccountAuthenticator();
+
         $this->apiClient = new ApiClient(
             $baseUrl,
-            new ManageApiTokenAuthenticator($manageApiToken),
+            $authenticator,
             new ApiClientOptions(
                 userAgent: $userAgent,
                 backoffMaxTries: $backoffMaxTries,
