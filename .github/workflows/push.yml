@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: [ '7.4', '8.2' ]
+        php-version: [ '8.2', '8.3' ]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies & Run tests
         run: |
-          if [ "${{ matrix.php-version }}" = "7.4" ]; then
+          if [ "${{ matrix.php-version }}" = "8.2" ]; then
             docker compose run dev bash -c "composer update --prefer-lowest && composer ci"
           else
             docker compose run dev bash -c "composer update && composer ci"

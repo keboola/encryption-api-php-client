@@ -1,16 +1,9 @@
 version: "3.4"
 
 services:
-  dev: &dev
+  dev:
     build: .
     volumes:
       - ./:/code
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-  dev-7.4:
-    <<: *dev
-    build:
-      context: .
-      args:
-        PHP_VERSION: "7.4"
