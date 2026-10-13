@@ -29,7 +29,7 @@ class Encryption
      */
     public function __construct(
         string $baseUrl,
-        ?string $storageToken = null,
+        ?string $storageToken,
         ?LoggerInterface $logger = null,
         int $backoffMaxTries = ApiClientOptions::DEFAULT_BACKOFF_MAX_TRIES,
         int $connectTimeout = ApiClientOptions::DEFAULT_CONNECT_TIMEOUT,

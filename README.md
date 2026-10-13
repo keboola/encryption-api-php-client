@@ -28,7 +28,7 @@ use Keboola\EncryptionApiClient\Encryption;
 
 $encryption = new Encryption(
     'https://encryption.keboola.com',
-    getenv('STORAGE_API_TOKEN'),
+    getenv('STORAGE_API_TOKEN'), // the encrypt endpoint is not authenticated, so `null` works too
 );
 
 $cipher = $encryption->encryptPlainTextForConfiguration(
@@ -38,7 +38,7 @@ $cipher = $encryption->encryptPlainTextForConfiguration(
     '123456',
 );
 
-// project-wide value, optionally limited to a branch type; the token is optional for encryption
+// project-wide value, optionally limited to a branch type
 $cipher = $encryption->encryptPlainTextForProject(
     'my secret value',
     'project-id',
