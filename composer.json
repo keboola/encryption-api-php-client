@@ -16,7 +16,7 @@
         "webmozart/assert": "^1.11"
     },
     "require-dev": {
-        "keboola/coding-standard": "^15.0",
+        "keboola/coding-standard": "^15.2",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-phpunit": "^1.3",
         "phpstan/phpstan-webmozart-assert": "^1.2",
