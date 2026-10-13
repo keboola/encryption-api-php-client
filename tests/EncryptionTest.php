@@ -7,6 +7,7 @@ namespace Keboola\EncryptionApiClient\Tests;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use Keboola\ApiClientBase\Json;
+use Keboola\EncryptionApiClient\BranchType;
 use Keboola\EncryptionApiClient\Encryption;
 use Keboola\EncryptionApiClient\Exception\ClientException;
 use PHPUnit\Framework\TestCase;
@@ -54,6 +55,61 @@ class EncryptionTest extends TestCase
             Json::encodeArray(['#value' => 'plainValue']),
             $requestsHistory[0]['request'],
         );
+    }
+
+    /** @return iterable<string, array{branchType: ?BranchType, expectedQuery: string, cipher: string}> */
+    public static function provideEncryptPlainTextForProject(): iterable
+    {
+        yield 'project wide' => [
+            'branchType' => null,
+            'expectedQuery' => 'projectId=project-id',
+            'cipher' => 'KBC::ProjectWideSecure::abcdefghijkl',
+        ];
+        yield 'default branch' => [
+            'branchType' => BranchType::DEFAULT,
+            'expectedQuery' => 'projectId=project-id&branchType=default',
+            'cipher' => 'KBC::ProjectWideBranchTypeSecure::abcdefghijkl',
+        ];
+        yield 'dev branch' => [
+            'branchType' => BranchType::DEV,
+            'expectedQuery' => 'projectId=project-id&branchType=dev',
+            'cipher' => 'KBC::ProjectWideBranchTypeSecure::abcdefghijkl',
+        ];
+    }
+
+    /** @dataProvider provideEncryptPlainTextForProject */
+    public function testEncryptPlainTextForProject(
+        ?BranchType $branchType,
+        string $expectedQuery,
+        string $cipher,
+    ): void {
+        $requestHandler = self::createRequestHandler($requestsHistory, [
+            new Response(
+                200,
+                ['Content-Type' => 'application/json'],
+                Json::encodeArray(['#value' => $cipher]),
+            ),
+        ]);
+
+        $client = new Encryption(
+            self::BASE_URL,
+            null,
+            requestHandler: $requestHandler(...),
+        );
+
+        $result = $client->encryptPlainTextForProject('plainValue', 'project-id', $branchType);
+
+        self::assertSame($cipher, $result);
+
+        self::assertCount(1, $requestsHistory);
+        self::assertRequestEquals(
+            'POST',
+            self::BASE_URL . '/encrypt?' . $expectedQuery,
+            ['Content-Type' => 'application/json'],
+            Json::encodeArray(['#value' => 'plainValue']),
+            $requestsHistory[0]['request'],
+        );
+        self::assertFalse($requestsHistory[0]['request']->hasHeader('X-StorageApi-Token'));
     }
 
     public function testEmptyBaseUrlThrows(): void
