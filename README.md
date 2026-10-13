@@ -38,7 +38,7 @@ $cipher = $encryption->encryptPlainTextForConfiguration(
     '123456',
 );
 
-// project-wide value, optionally limited to a branch type
+// project-wide value, optionally limited to a branch type; the token is optional for encryption
 $cipher = $encryption->encryptPlainTextForProject(
     'my secret value',
     'project-id',

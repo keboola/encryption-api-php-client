@@ -87,7 +87,6 @@ class EncryptionTest extends TestCase
 
         $client = new Encryption(
             self::BASE_URL,
-            self::API_TOKEN,
             requestHandler: $requestHandler(...),
         );
 
@@ -99,13 +98,11 @@ class EncryptionTest extends TestCase
         self::assertRequestEquals(
             'POST',
             self::BASE_URL . '/encrypt?' . $expectedQuery,
-            [
-                'Content-Type' => 'application/json',
-                'X-StorageApi-Token' => self::API_TOKEN,
-            ],
+            ['Content-Type' => 'application/json'],
             Json::encodeArray(['#value' => 'plainValue']),
             $requestsHistory[0]['request'],
         );
+        self::assertFalse($requestsHistory[0]['request']->hasHeader('X-StorageApi-Token'));
     }
 
     public function testEmptyBaseUrlThrows(): void

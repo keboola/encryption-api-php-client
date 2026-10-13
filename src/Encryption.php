@@ -9,6 +9,7 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Request;
 use Keboola\ApiClientBase\ApiClient;
 use Keboola\ApiClientBase\ApiClientOptions;
+use Keboola\ApiClientBase\Auth\NoAuthAuthenticator;
 use Keboola\ApiClientBase\Auth\StorageApiTokenAuthenticator;
 use Keboola\ApiClientBase\Json;
 use Keboola\EncryptionApiClient\Exception\ClientException;
@@ -23,12 +24,12 @@ class Encryption
 
     /**
      * @param non-empty-string $baseUrl
-     * @param non-empty-string $storageToken
+     * @param non-empty-string|null $storageToken Optional, the encrypt endpoint is not authenticated.
      * @param int<0, max> $backoffMaxTries
      */
     public function __construct(
         string $baseUrl,
-        string $storageToken,
+        ?string $storageToken = null,
         ?LoggerInterface $logger = null,
         int $backoffMaxTries = ApiClientOptions::DEFAULT_BACKOFF_MAX_TRIES,
         int $connectTimeout = ApiClientOptions::DEFAULT_CONNECT_TIMEOUT,
@@ -40,7 +41,7 @@ class Encryption
 
         $this->apiClient = new ApiClient(
             $baseUrl,
-            new StorageApiTokenAuthenticator($storageToken),
+            $storageToken !== null ? new StorageApiTokenAuthenticator($storageToken) : new NoAuthAuthenticator(),
             new ApiClientOptions(
                 userAgent: $userAgent,
                 backoffMaxTries: $backoffMaxTries,
