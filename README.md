@@ -23,6 +23,7 @@ transport options (`logger`, `backoffMaxTries`, `connectTimeout`, `requestTimeou
 ### Encryption
 
 ```php
+use Keboola\EncryptionApiClient\BranchType;
 use Keboola\EncryptionApiClient\Encryption;
 
 $encryption = new Encryption(
@@ -35,6 +36,13 @@ $cipher = $encryption->encryptPlainTextForConfiguration(
     'project-id',
     'keboola.data-apps',
     '123456',
+);
+
+// project-wide value, optionally limited to a branch type
+$cipher = $encryption->encryptPlainTextForProject(
+    'my secret value',
+    'project-id',
+    BranchType::DEV,
 );
 ```
 

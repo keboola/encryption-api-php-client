@@ -60,16 +60,36 @@ class Encryption
         string $componentId,
         string $configId,
     ): string {
-        $url = 'encrypt?' . http_build_query([
+        return $this->encryptPlainText($value, [
             'projectId' => $projectId,
             'componentId' => $componentId,
             'configId' => $configId,
         ]);
+    }
 
+    /**
+     * Encrypts a value for the whole project, optionally limited to a branch type.
+     */
+    public function encryptPlainTextForProject(
+        string $value,
+        string $projectId,
+        ?BranchType $branchType = null,
+    ): string {
+        return $this->encryptPlainText($value, [
+            'projectId' => $projectId,
+            'branchType' => $branchType?->value,
+        ]);
+    }
+
+    /**
+     * @param array<string, string|null> $query
+     */
+    private function encryptPlainText(string $value, array $query): string
+    {
         $response = $this->apiClient->sendRequestAndMapResponse(
             new Request(
                 'POST',
-                $url,
+                'encrypt?' . http_build_query($query),
                 ['Content-Type' => 'application/json'],
                 // the API works with JSON requests/responses, so the value is wrapped in an object
                 Json::encodeArray(['#value' => $value]),
